@@ -226,7 +226,7 @@ class Classifier(DeepEstimator, base.MiniBatchClassifier):
         if not self.module_initialized:
             self.kwargs["n_features"] = len(x)
             self.initialize_module(**self.kwargs)
-        x_t = dict2tensor(x, device=self.device)
+        x_t = dict2tensor(x, device=self.device, dtype=torch.long)
 
         # check last layer
         self.observed_classes.add(y)
@@ -252,7 +252,7 @@ class Classifier(DeepEstimator, base.MiniBatchClassifier):
         if not self.module_initialized:
             self.kwargs["n_features"] = len(x)
             self.initialize_module(**self.kwargs)
-        x_t = dict2tensor(x, device=self.device)
+        x_t = dict2tensor(x, device=self.device, dtype=torch.long)
         self.module.eval()
         with torch.inference_mode():
             y_pred = self.module(x_t)
@@ -280,7 +280,7 @@ class Classifier(DeepEstimator, base.MiniBatchClassifier):
         if not self.module_initialized:
             self.kwargs["n_features"] = len(X.columns)
             self.initialize_module(**self.kwargs)
-        X = df2tensor(X, device=self.device)
+        X = df2tensor(X, device=self.device, dtype=torch.long)
 
         self.observed_classes.update(y)
         if self.is_class_incremental:
@@ -305,7 +305,7 @@ class Classifier(DeepEstimator, base.MiniBatchClassifier):
         if not self.module_initialized:
             self.kwargs["n_features"] = len(X.columns)
             self.initialize_module(**self.kwargs)
-        X_t = df2tensor(X, device=self.device)
+        X_t = df2tensor(X, device=self.device, dtype=torch.long)
         self.module.eval()
         with torch.inference_mode():
             y_preds = self.module(X_t)
@@ -377,7 +377,10 @@ class Classifier(DeepEstimator, base.MiniBatchClassifier):
         tracker = ForwardOrderTracker()
         apply_hooks(module=self.module, hook=tracker, handles=handles)
 
-        x_dummy = torch.empty((1, n_features), device=self.device)
+        # x_dummy = torch.empty(
+        #     (1, n_features), device=self.device, dtype=torch.long)
+        x_dummy = torch.randint(0, 10000, (1, n_features),
+                                device=self.device, dtype=torch.long)
         self.module(x_dummy)
 
         for h in handles:
